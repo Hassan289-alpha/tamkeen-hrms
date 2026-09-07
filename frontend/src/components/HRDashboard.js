@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
   Users, CalendarCheck, Clock, FileSpreadsheet, FileText, CheckCircle, XCircle, LogOut,
-  Sparkles, TrendingUp, Search, ArrowLeft, ArrowRight, RefreshCw, Briefcase,
+  Sparkles, TrendingUp, Search, RefreshCw, Briefcase,
   X, Megaphone, Flag, UserCheck, Edit3, Trash2, UserPlus, Play, PieChart, Download, Check,
 } from 'lucide-react';
 

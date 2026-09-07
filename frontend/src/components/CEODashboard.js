@@ -12,7 +12,6 @@ import {
   ShieldCheck,
   LogOut,
   RefreshCw,
-  Building2,
   PieChart,
   Activity,
   ArrowUpRight,

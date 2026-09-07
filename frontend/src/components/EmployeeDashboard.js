@@ -10,7 +10,7 @@ import {
   Wifi,
   Sparkles,
   Send,
-  Building2,
+  Briefcase,
   HeartPulse,
   Palmtree,
   CalendarDays,

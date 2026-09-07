@@ -188,14 +188,14 @@ const seedInitialData = async () => {
   }
 };
 
-// Sync Database and Start Server
+// Sync Database and Start Server (Updated with '0.0.0.0' for Render port detection)
 sequelize
   .sync()
   .then(async () => {
     console.log("✓ PostgreSQL Database Connected & Synced Successfully");
     await seedInitialData();
-    app.listen(PORT, () =>
-      console.log(`🚀 Tamkeen HRMS Backend running on http://localhost:${PORT}`)
+    app.listen(PORT, '0.0.0.0', () =>
+      console.log(`🚀 Tamkeen HRMS Backend running on port ${PORT}`)
     );
   })
   .catch((err) => {

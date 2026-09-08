@@ -19,7 +19,7 @@ import {
   RefreshCw,
   Plus,
   FileText,
-  Megaphone // Added for announcements
+  Megaphone
 } from 'lucide-react';
 
 export default function EmployeeDashboard() {
@@ -27,14 +27,14 @@ export default function EmployeeDashboard() {
   const token = localStorage.getItem('token');
   const storedUser = JSON.parse(localStorage.getItem('user')) || { name: 'Employee', email: 'employee@tamkeenits.com', role: 'Employee' };
 
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'attendance', 'leaves', 'payslips'
+  const [activeTab, setActiveTab] = useState('overview');
   const [userProfile, setUserProfile] = useState(storedUser);
   const [networkInfo, setNetworkInfo] = useState({ clientIp: '127.0.0.1', isOfficeNetwork: true, isWeekendOffDay: false });
   const [todayAttendance, setTodayAttendance] = useState({ isCheckedIn: false, isCheckedOut: false, attendance: null, isWeekend: false });
   const [myHistory, setMyHistory] = useState([]);
   const [myLeaves, setMyLeaves] = useState([]);
   const [myPayslips, setMyPayslips] = useState([]);
-  const [holidays, setHolidays] = useState([]); // NEW: State for company announcements
+  const [holidays, setHolidays] = useState([]);
 
   // Real-time live clock
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -90,7 +90,7 @@ export default function EmployeeDashboard() {
         axios.get('https://tamkeen-hrms.onrender.com/api/attendance/my-history', authHeaders),
         axios.get('https://tamkeen-hrms.onrender.com/api/leaves/my-leaves', authHeaders),
         axios.get('https://tamkeen-hrms.onrender.com/api/payroll/my-payslips', authHeaders),
-        axios.get('https://tamkeen-hrms.onrender.com/api/holidays', authHeaders) // NEW: Fetch holidays
+        axios.get('https://tamkeen-hrms.onrender.com/api/holidays', authHeaders)
       ]);
 
       if (profileRes.data?.user) {
@@ -102,7 +102,7 @@ export default function EmployeeDashboard() {
       setMyHistory(historyRes.data);
       setMyLeaves(leavesRes.data);
       setMyPayslips(payslipsRes.data);
-      setHolidays(holidaysRes.data || []); // NEW: Set holidays state
+      setHolidays(holidaysRes.data || []);
     } catch (err) {
       console.error('Data fetch error:', err);
     }
@@ -143,6 +143,22 @@ export default function EmployeeDashboard() {
   // Leave Submit Handler
   const handleApplyLeave = async (e) => {
     e.preventDefault();
+
+    // --- FRONTEND VALIDATION LOGIC ---
+    if (leaveType === 'Casual' && calculatedDays > userProfile.casual_leave_balance) {
+      showAlert(`Cannot request ${calculatedDays} days. You only have ${userProfile.casual_leave_balance} casual leaves remaining.`, 'error');
+      return;
+    }
+    if (leaveType === 'Sick' && calculatedDays > userProfile.sick_leave_balance) {
+      showAlert(`Cannot request ${calculatedDays} days. You only have ${userProfile.sick_leave_balance} sick leaves remaining.`, 'error');
+      return;
+    }
+    if (leaveType === 'Annual' && calculatedDays > userProfile.annual_leave_balance) {
+      showAlert(`Cannot request ${calculatedDays} days. You only have ${userProfile.annual_leave_balance} annual leaves remaining.`, 'error');
+      return;
+    }
+    // ---------------------------------
+
     setSubmittingLeave(true);
     try {
       const formData = new FormData();

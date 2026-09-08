@@ -5,7 +5,7 @@ const User = require('../models/User');
 const { authenticateToken, requireRole } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
-// Employee: Submit Leave Request (With Optional Proof Upload)
+// Employee: Submit Leave Request (With Balance Validation)
 router.post('/apply', authenticateToken, upload.single('proof'), async (req, res) => {
   try {
     const userId = req.user.id;
@@ -15,6 +15,31 @@ router.post('/apply', authenticateToken, upload.single('proof'), async (req, res
       return res.status(400).json({ error: 'All fields are required.' });
     }
 
+    const requestedDays = parseInt(days, 10);
+    
+    // 1. Fetch the user to check their current balances
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    // 2. Check the requested balance against the user's available balance
+    let availableBalance = 0;
+    if (leave_type.includes('Casual')) {
+      availableBalance = user.casual_leave_balance;
+    } else if (leave_type.includes('Sick')) {
+      availableBalance = user.sick_leave_balance;
+    } else if (leave_type.includes('Annual')) {
+      availableBalance = user.annual_leave_balance;
+    }
+
+    // 3. Block submission if requesting too many days
+    if (requestedDays > availableBalance) {
+      return res.status(400).json({ 
+        error: `Insufficient balance. You only have ${availableBalance} days of ${leave_type} remaining.` 
+      });
+    }
+
     const proof_document = req.file ? `/uploads/${req.file.filename}` : null;
 
     const newLeave = await Leave.create({
@@ -22,7 +47,7 @@ router.post('/apply', authenticateToken, upload.single('proof'), async (req, res
       leave_type,
       start_date,
       end_date,
-      days: parseInt(days, 10),
+      days: requestedDays,
       reason,
       status: 'Pending',
       proof_document
@@ -38,7 +63,8 @@ router.post('/apply', authenticateToken, upload.single('proof'), async (req, res
 // HR / CEO: Approve or Reject Leave Request
 router.put('/:id/status', authenticateToken, requireRole('HR', 'CEO'), async (req, res) => {
   try {
-    const { status } = req.body; // 'Approved' or 'Rejected'
+    // Extract both status and rejection_reason from the frontend request
+    const { status, rejection_reason } = req.body; 
     const leave = await Leave.findByPk(req.params.id);
 
     if (!leave) return res.status(404).json({ error: 'Leave request not found.' });
@@ -58,10 +84,17 @@ router.put('/:id/status', authenticateToken, requireRole('HR', 'CEO'), async (re
     }
 
     leave.status = status;
+    
+    // If rejected, save the reason to the database
+    if (status === 'Rejected' && rejection_reason) {
+      leave.rejection_reason = rejection_reason;
+    }
+
     await leave.save();
 
     res.json({ message: `Leave status updated to ${status}`, leave });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Failed to update leave status' });
   }
 });

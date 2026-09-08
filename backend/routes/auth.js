@@ -30,7 +30,7 @@ router.post('/register', authenticateToken, requireRole('HR', 'CEO'), upload.sin
       role: role || 'Employee',
       department: department || 'Engineering',
       position: position || 'Staff Member',
-      base_salary: base_salary ? Number(base_salary) : 75000, // Saves base salary
+      base_salary: base_salary ? Number(base_salary) : 75000,
       sick_leave_balance: 10,
       casual_leave_balance: 10,
       annual_leave_balance: 15,
@@ -101,22 +101,27 @@ router.get('/users', authenticateToken, requireRole('HR', 'CEO'), async (req, re
   }
 });
 
-// HR & CEO ONLY: Update an employee (Fixes the "Failed to update employee" error)
+// HR & CEO ONLY: Update an employee & Handle Password Reset
 router.put('/users/:id', authenticateToken, requireRole('HR', 'CEO'), async (req, res) => {
   try {
-    const { name, email, department, base_salary } = req.body;
+    const { name, email, department, base_salary, password } = req.body;
     const user = await User.findByPk(req.params.id);
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    await user.update({
-      name: name || user.name,
-      email: email || user.email,
-      department: department || user.department,
-      base_salary: base_salary !== undefined ? Number(base_salary) : user.base_salary
-    });
+    user.name = name || user.name;
+    user.email = email || user.email;
+    user.department = department || user.department;
+    user.base_salary = base_salary !== undefined ? Number(base_salary) : user.base_salary;
+
+    // Check if a new password was provided in the update form
+    if (password && password.trim() !== '') {
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    await user.save();
 
     res.json({ message: 'Employee updated successfully', user });
   } catch (error) {

@@ -21,6 +21,10 @@ export default function HRDashboard() {
   const [approvingId, setApprovingId] = useState(null);
   const [rejectingId, setRejectingId] = useState(null);
 
+  // Rejection Modal State
+  const [rejectLeaveModal, setRejectLeaveModal] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+
   const [newEmp, setNewEmp] = useState({ name: '', email: '', password: 'employee123', department: 'Engineering', base_salary: 75000, document: null });
   const [addingUser, setAddingUser] = useState(false);
 
@@ -139,9 +143,6 @@ export default function HRDashboard() {
     } catch (err) { showAlert('Failed to remove employee', 'error'); }
   };
 
-  // ==========================================
-  // INDIVIDUAL EMPLOYEE EXPORTS
-  // ==========================================
   const handleDownloadIndividualExcel = async (id, name) => {
     try {
       showAlert(`Generating Excel for ${name}...`, "info");
@@ -214,7 +215,6 @@ export default function HRDashboard() {
     } catch (err) { showAlert("Failed to update payroll", "error"); }
   };
 
-  // HR Direct Approval Logic
   const handleApprovePayroll = async (id) => {
     try {
       await axios.put(`https://tamkeen-hrms.onrender.com/api/payroll/update/${id}`, { status: 'Approved & Paid' }, authHeaders);
@@ -260,14 +260,28 @@ export default function HRDashboard() {
     } catch (err) { showAlert('Failed to approve leave', 'error'); } finally { setApprovingId(null); }
   };
 
-  const handleRejectLeave = async (leaveId) => {
-    setRejectingId(leaveId);
+  // Submit Rejection with Reason
+  const submitRejectLeave = async (e) => {
+    e.preventDefault();
+    if (!rejectReason.trim()) return showAlert('Rejection reason is required.', 'error');
+    
+    setRejectingId(rejectLeaveModal.id);
     try {
-      await axios.put(`https://tamkeen-hrms.onrender.com/api/leaves/${leaveId}/status`, { status: 'Rejected' }, authHeaders);
-      showAlert('Leave marked as rejected.', 'info');
-      setPendingLeaves(prev => prev.filter(l => l.id !== leaveId));
+      await axios.put(`https://tamkeen-hrms.onrender.com/api/leaves/${rejectLeaveModal.id}/status`, { 
+        status: 'Rejected',
+        rejection_reason: rejectReason 
+      }, authHeaders);
+      
+      showAlert('Leave application rejected successfully.', 'info');
+      setPendingLeaves(prev => prev.filter(l => l.id !== rejectLeaveModal.id));
       fetchDashboardData();
-    } catch (err) { showAlert('Failed to reject leave', 'error'); } finally { setRejectingId(null); }
+      setRejectLeaveModal(null);
+      setRejectReason('');
+    } catch (err) { 
+      showAlert('Failed to reject leave', 'error'); 
+    } finally { 
+      setRejectingId(null); 
+    }
   };
 
   const submitEditAttendance = async (e) => {
@@ -324,6 +338,33 @@ export default function HRDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col md:flex-row font-sans relative selection:bg-indigo-500 selection:text-white">
+
+      {/* REJECT LEAVE MODAL */}
+      {rejectLeaveModal && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 shadow-2xl relative text-slate-900">
+            <button onClick={() => { setRejectLeaveModal(null); setRejectReason(''); }} className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 cursor-pointer"><X className="w-5 h-5"/></button>
+            <h3 className="text-lg font-bold text-slate-900 mb-1">Reject Leave Request</h3>
+            <p className="text-xs text-slate-500 mb-4">Please provide a reason for rejecting the leave for {rejectLeaveModal.User?.name}.</p>
+            <form onSubmit={submitRejectLeave} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Rejection Reason</label>
+                <textarea 
+                  rows="3" 
+                  required 
+                  value={rejectReason} 
+                  onChange={(e) => setRejectReason(e.target.value)} 
+                  placeholder="E.g., Insufficient leave balance, critical project deadline..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none focus:border-rose-500 resize-none" 
+                />
+              </div>
+              <button type="submit" disabled={rejectingId === rejectLeaveModal.id} className="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm transition-colors mt-2 cursor-pointer shadow-sm disabled:opacity-50">
+                {rejectingId === rejectLeaveModal.id ? 'Rejecting...' : 'Confirm Rejection'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* EDIT HOLIDAY MODAL */}
       {editHolidayModal && (
@@ -593,7 +634,9 @@ export default function HRDashboard() {
 
                       <div className="flex gap-3 pt-1">
                         <button onClick={() => handleApproveLeave(leave.id, leave.User?.name, leave.leave_type)} disabled={approvingId === leave.id} className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-xs"><Check className="w-4 h-4" /> <span>Approve</span></button>
-                        <button onClick={() => handleRejectLeave(leave.id)} disabled={rejectingId === leave.id} className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-xs"><X className="w-4 h-4" /> <span>Reject</span></button>
+                        
+                        {/* UPDATE: Replaced handleRejectLeave with setRejectLeaveModal */}
+                        <button onClick={() => setRejectLeaveModal(leave)} disabled={rejectingId === leave.id} className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-xs"><X className="w-4 h-4" /> <span>Reject</span></button>
                       </div>
                     </div>
                   ))}
@@ -696,7 +739,6 @@ export default function HRDashboard() {
                       <div className="p-2 rounded-xl bg-slate-50 border border-slate-200"><span className="text-[10px] text-slate-500 block font-medium">Annual</span><span className="text-sm font-extrabold text-sky-600">{emp.annual_leave_balance}d</span></div>
                     </div>
 
-                    {/* NEW INDIVIDUAL EXPORT BUTTONS */}
                     <div className="flex gap-2 pt-1">
                       <button onClick={() => handleDownloadIndividualExcel(emp.id, emp.name)} className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-[10px] font-bold cursor-pointer transition-colors border border-emerald-200"><FileSpreadsheet className="w-3 h-3" /> Excel Logs</button>
                       <button onClick={() => handleDownloadIndividualPDF(emp.id, emp.name)} className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-[10px] font-bold cursor-pointer transition-colors border border-indigo-200"><FileText className="w-3 h-3" /> PDF Report</button>

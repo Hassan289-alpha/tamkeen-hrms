@@ -264,14 +264,14 @@ export default function HRDashboard() {
   const submitRejectLeave = async (e) => {
     e.preventDefault();
     if (!rejectReason.trim()) return showAlert('Rejection reason is required.', 'error');
-    
+
     setRejectingId(rejectLeaveModal.id);
     try {
       await axios.put(`https://tamkeen-hrms.onrender.com/api/leaves/${rejectLeaveModal.id}/status`, { 
         status: 'Rejected',
         rejection_reason: rejectReason 
       }, authHeaders);
-      
+
       showAlert('Leave application rejected successfully.', 'info');
       setPendingLeaves(prev => prev.filter(l => l.id !== rejectLeaveModal.id));
       fetchDashboardData();
@@ -413,6 +413,13 @@ export default function HRDashboard() {
             <form onSubmit={handleUpdateEmployee} className="space-y-4 mt-4">
               <div><label className="block text-xs font-medium text-slate-600 mb-1">Full Name</label><input type="text" value={editEmployeeModal.name} onChange={e => setEditEmployeeModal({...editEmployeeModal, name: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-600" required /></div>
               <div><label className="block text-xs font-medium text-slate-600 mb-1">Email</label><input type="email" value={editEmployeeModal.email} onChange={e => setEditEmployeeModal({...editEmployeeModal, email: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-600" required /></div>
+              
+              {/* NEW PASSWORD RESET FIELD ADDED HERE */}
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Reset Password (Optional)</label>
+                <input type="text" placeholder="Enter new password to reset..." value={editEmployeeModal.password || ''} onChange={e => setEditEmployeeModal({...editEmployeeModal, password: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-600" />
+              </div>
+
               <div><label className="block text-xs font-medium text-slate-600 mb-1">Department</label><input type="text" value={editEmployeeModal.department} onChange={e => setEditEmployeeModal({...editEmployeeModal, department: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-600" required /></div>
               <div><label className="block text-xs font-medium text-slate-600 mb-1">Base Salary (Rs.)</label><input type="number" value={editEmployeeModal.base_salary} onChange={e => setEditEmployeeModal({...editEmployeeModal, base_salary: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-600" required /></div>
               <button type="submit" className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-colors mt-2 cursor-pointer shadow-sm">Update Employee</button>
@@ -634,8 +641,6 @@ export default function HRDashboard() {
 
                       <div className="flex gap-3 pt-1">
                         <button onClick={() => handleApproveLeave(leave.id, leave.User?.name, leave.leave_type)} disabled={approvingId === leave.id} className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-xs"><Check className="w-4 h-4" /> <span>Approve</span></button>
-                        
-                        {/* UPDATE: Replaced handleRejectLeave with setRejectLeaveModal */}
                         <button onClick={() => setRejectLeaveModal(leave)} disabled={rejectingId === leave.id} className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-xs"><X className="w-4 h-4" /> <span>Reject</span></button>
                       </div>
                     </div>

@@ -141,7 +141,7 @@ OFFICE_IP=192.168.1.1
 cd backend
 npm run dev
 ```
-Backend runs on: `http://localhost:5000`
+Backend runs on: `https://tamkeen-hrms.onrender.com`
 
 **Terminal 2 - Frontend:**
 ```bash

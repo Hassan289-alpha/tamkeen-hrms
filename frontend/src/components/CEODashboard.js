@@ -65,10 +65,10 @@ export default function CEODashboard() {
     setLoading(true);
     try {
       const [statsRes, usersRes, reportsRes] = await Promise.all([
-        axios.get("http://localhost:5000/api/attendance/stats", authHeaders),
-        axios.get("http://localhost:5000/api/auth/users", authHeaders),
+        axios.get("https://tamkeen-hrms.onrender.com/api/attendance/stats", authHeaders),
+        axios.get("https://tamkeen-hrms.onrender.com/api/auth/users", authHeaders),
         axios.get(
-          `http://localhost:5000/api/reports/monthly?page=1&limit=10&month=${reportMonth}`,
+          `https://tamkeen-hrms.onrender.com/api/reports/monthly?page=1&limit=10&month=${reportMonth}`,
           authHeaders
         ),
       ]);
@@ -85,7 +85,7 @@ export default function CEODashboard() {
   const fetchPayroll = async (month = payrollMonth) => {
     setLoadingPayroll(true);
     try {
-      const res = await axios.get(`http://localhost:5000/api/payroll/generate/${month}`, authHeaders);
+      const res = await axios.get(`https://tamkeen-hrms.onrender.com/api/payroll/generate/${month}`, authHeaders);
       setPayrollData(res.data);
     } catch (err) {
       showAlert('Failed to load payroll records', 'error');
@@ -108,7 +108,7 @@ export default function CEODashboard() {
   const fetchMonthlyReportStats = async () => {
     try {
       const reportsRes = await axios.get(
-        `http://localhost:5000/api/reports/monthly?page=1&limit=10&month=${reportMonth}`,
+        `https://tamkeen-hrms.onrender.com/api/reports/monthly?page=1&limit=10&month=${reportMonth}`,
         authHeaders
       );
       setReportData(reportsRes.data);
@@ -117,14 +117,14 @@ export default function CEODashboard() {
 
   const handleExportExcel = () => {
     window.open(
-      `http://localhost:5000/api/reports/export-excel?month=${reportMonth}`,
+      `https://tamkeen-hrms.onrender.com/api/reports/export-excel?month=${reportMonth}`,
       "_blank"
     );
   };
 
   const handleExportPDF = () => {
     window.open(
-      `http://localhost:5000/api/reports/export-pdf?month=${reportMonth}`,
+      `https://tamkeen-hrms.onrender.com/api/reports/export-pdf?month=${reportMonth}`,
       "_blank"
     );
   };

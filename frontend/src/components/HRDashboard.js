@@ -52,10 +52,10 @@ export default function HRDashboard() {
   const fetchDashboardData = async () => {
     try {
       const [statsRes, leavesRes, allLeavesRes, holidaysRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/attendance/stats', authHeaders),
-        axios.get('http://localhost:5000/api/leaves/pending', authHeaders),
-        axios.get('http://localhost:5000/api/leaves/all', authHeaders),
-        axios.get('http://localhost:5000/api/holidays', authHeaders)
+        axios.get('https://tamkeen-hrms.onrender.com/api/attendance/stats', authHeaders),
+        axios.get('https://tamkeen-hrms.onrender.com/api/leaves/pending', authHeaders),
+        axios.get('https://tamkeen-hrms.onrender.com/api/leaves/all', authHeaders),
+        axios.get('https://tamkeen-hrms.onrender.com/api/holidays', authHeaders)
       ]);
       setStats(statsRes.data);
       setPendingLeaves(leavesRes.data || []);
@@ -66,7 +66,7 @@ export default function HRDashboard() {
 
   const fetchEmployees = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/auth/users', authHeaders);
+      const res = await axios.get('https://tamkeen-hrms.onrender.com/api/auth/users', authHeaders);
       setEmployees(res.data);
     } catch (err) { console.error(err); }
   };
@@ -74,7 +74,7 @@ export default function HRDashboard() {
   const fetchMonthlyReport = async (page = 1, month = reportMonth, search = searchQuery) => {
     setLoadingReports(true);
     try {
-      const res = await axios.get(`http://localhost:5000/api/reports/monthly?page=${page}&limit=1000&month=${month}&search=${encodeURIComponent(search)}`, authHeaders);
+      const res = await axios.get(`https://tamkeen-hrms.onrender.com/api/reports/monthly?page=${page}&limit=1000&month=${month}&search=${encodeURIComponent(search)}`, authHeaders);
       setReportData(res.data);
       setReportPage(page);
     } catch (err) { showAlert('Failed to load reports', 'error'); } finally { setLoadingReports(false); }
@@ -83,7 +83,7 @@ export default function HRDashboard() {
   const fetchPayroll = async (month = payrollMonth) => {
     setLoadingPayroll(true);
     try {
-      const res = await axios.get(`http://localhost:5000/api/payroll/generate/${month}`, authHeaders);
+      const res = await axios.get(`https://tamkeen-hrms.onrender.com/api/payroll/generate/${month}`, authHeaders);
       setPayrollData(res.data);
     } catch (err) { showAlert('Failed to load payroll', 'error'); } finally { setLoadingPayroll(false); }
   };
@@ -110,7 +110,7 @@ export default function HRDashboard() {
       formData.append('base_salary', newEmp.base_salary);
       if (newEmp.document) formData.append('document', newEmp.document);
 
-      await axios.post('http://localhost:5000/api/auth/register', formData, { headers: { ...authHeaders.headers, 'Content-Type': 'multipart/form-data' } });
+      await axios.post('https://tamkeen-hrms.onrender.com/api/auth/register', formData, { headers: { ...authHeaders.headers, 'Content-Type': 'multipart/form-data' } });
       showAlert('✓ Employee account saved successfully!', 'success');
       setNewEmp({ name: '', email: '', password: 'employee123', department: 'Engineering', base_salary: 75000, document: null });
       if(document.getElementById('hr-file-upload')) document.getElementById('hr-file-upload').value = '';
@@ -122,7 +122,7 @@ export default function HRDashboard() {
   const handleUpdateEmployee = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5000/api/auth/users/${editEmployeeModal.id}`, editEmployeeModal, authHeaders);
+      await axios.put(`https://tamkeen-hrms.onrender.com/api/auth/users/${editEmployeeModal.id}`, editEmployeeModal, authHeaders);
       showAlert('✓ Employee updated successfully!', 'success');
       setEditEmployeeModal(null);
       fetchEmployees();
@@ -132,7 +132,7 @@ export default function HRDashboard() {
   const handleDeleteEmployee = async (id, name) => {
     if (!window.confirm(`Are you sure you want to completely remove ${name}?`)) return;
     try {
-      await axios.delete(`http://localhost:5000/api/auth/users/${id}`, authHeaders);
+      await axios.delete(`https://tamkeen-hrms.onrender.com/api/auth/users/${id}`, authHeaders);
       showAlert(`✓ Employee ${name} removed.`, 'success');
       fetchEmployees();
       fetchDashboardData();
@@ -145,7 +145,7 @@ export default function HRDashboard() {
   const handleDownloadIndividualExcel = async (id, name) => {
     try {
       showAlert(`Generating Excel for ${name}...`, "info");
-      const response = await fetch(`http://localhost:5000/api/reports/export-employee/${id}/excel`, { method: "GET", headers: { "Authorization": `Bearer ${token}` } });
+      const response = await fetch(`https://tamkeen-hrms.onrender.com/api/reports/export-employee/${id}/excel`, { method: "GET", headers: { "Authorization": `Bearer ${token}` } });
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -161,7 +161,7 @@ export default function HRDashboard() {
   const handleDownloadIndividualPDF = async (id, name) => {
     try {
       showAlert(`Generating PDF for ${name}...`, "info");
-      const response = await fetch(`http://localhost:5000/api/reports/export-employee/${id}/pdf`, { method: "GET", headers: { "Authorization": `Bearer ${token}` } });
+      const response = await fetch(`https://tamkeen-hrms.onrender.com/api/reports/export-employee/${id}/pdf`, { method: "GET", headers: { "Authorization": `Bearer ${token}` } });
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -178,7 +178,7 @@ export default function HRDashboard() {
     e.preventDefault();
     setAnnouncingHoliday(true);
     try {
-      await axios.post('http://localhost:5000/api/holidays/announce', newHoliday, authHeaders);
+      await axios.post('https://tamkeen-hrms.onrender.com/api/holidays/announce', newHoliday, authHeaders);
       showAlert('✓ Holiday announced! Deductions successfully blocked.', 'success');
       setNewHoliday({ title: '', start_date: '', end_date: '', description: '' });
       fetchDashboardData();
@@ -188,7 +188,7 @@ export default function HRDashboard() {
   const handleUpdateHoliday = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5000/api/holidays/${editHolidayModal.id}`, editHolidayModal, authHeaders);
+      await axios.put(`https://tamkeen-hrms.onrender.com/api/holidays/${editHolidayModal.id}`, editHolidayModal, authHeaders);
       showAlert('✓ Holiday updated successfully!', 'success');
       setEditHolidayModal(null);
       fetchDashboardData();
@@ -198,7 +198,7 @@ export default function HRDashboard() {
   const handleDeleteHoliday = async (id) => {
     if(!window.confirm("Remove this holiday?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/holidays/${id}`, authHeaders);
+      await axios.delete(`https://tamkeen-hrms.onrender.com/api/holidays/${id}`, authHeaders);
       showAlert('Holiday removed', 'success');
       fetchDashboardData();
     } catch(err) { showAlert('Failed to delete holiday', 'error'); }
@@ -207,7 +207,7 @@ export default function HRDashboard() {
   const handleSavePayrollEdit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5000/api/payroll/update/${editPayrollModal.id}`, editPayrollModal, authHeaders);
+      await axios.put(`https://tamkeen-hrms.onrender.com/api/payroll/update/${editPayrollModal.id}`, editPayrollModal, authHeaders);
       showAlert("✓ Payroll record updated successfully!", "success");
       setEditPayrollModal(null);
       fetchPayroll(payrollMonth);
@@ -217,7 +217,7 @@ export default function HRDashboard() {
   // HR Direct Approval Logic
   const handleApprovePayroll = async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/payroll/update/${id}`, { status: 'Approved & Paid' }, authHeaders);
+      await axios.put(`https://tamkeen-hrms.onrender.com/api/payroll/update/${id}`, { status: 'Approved & Paid' }, authHeaders);
       showAlert("✓ Payroll Approved & Finalized!", "success");
       fetchPayroll(payrollMonth);
     } catch (err) { showAlert("Failed to approve payroll", "error"); }
@@ -226,7 +226,7 @@ export default function HRDashboard() {
   const handleApproveAllDrafts = async () => {
     if(!window.confirm("Are you sure you want to approve all drafts for this month? This will allow employees to download their payslips.")) return;
     try {
-      await axios.put('http://localhost:5000/api/payroll/approve-all', { month: payrollMonth }, authHeaders);
+      await axios.put('https://tamkeen-hrms.onrender.com/api/payroll/approve-all', { month: payrollMonth }, authHeaders);
       showAlert("✓ All drafts approved & finalized!", "success");
       fetchPayroll(payrollMonth);
     } catch (err) { showAlert("Failed to approve drafts", "error"); }
@@ -235,7 +235,7 @@ export default function HRDashboard() {
   const handleDownloadPayslip = async (id, employeeName, month) => {
     try {
       showAlert("Generating PDF payslip...", "info");
-      const response = await axios.get(`http://localhost:5000/api/payroll/payslip/${id}/pdf`, { headers: { Authorization: `Bearer ${token}` }, responseType: 'blob' });
+      const response = await axios.get(`https://tamkeen-hrms.onrender.com/api/payroll/payslip/${id}/pdf`, { headers: { Authorization: `Bearer ${token}` }, responseType: 'blob' });
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -252,7 +252,7 @@ export default function HRDashboard() {
   const handleApproveLeave = async (leaveId, employeeName, leaveType) => {
     setApprovingId(leaveId);
     try {
-      await axios.put(`http://localhost:5000/api/leaves/${leaveId}/status`, { status: 'Approved' }, authHeaders);
+      await axios.put(`https://tamkeen-hrms.onrender.com/api/leaves/${leaveId}/status`, { status: 'Approved' }, authHeaders);
       showAlert(`✓ Approved ${leaveType} leave for ${employeeName}.`, 'success');
       setPendingLeaves(prev => prev.filter(l => l.id !== leaveId));
       fetchDashboardData();
@@ -263,7 +263,7 @@ export default function HRDashboard() {
   const handleRejectLeave = async (leaveId) => {
     setRejectingId(leaveId);
     try {
-      await axios.put(`http://localhost:5000/api/leaves/${leaveId}/status`, { status: 'Rejected' }, authHeaders);
+      await axios.put(`https://tamkeen-hrms.onrender.com/api/leaves/${leaveId}/status`, { status: 'Rejected' }, authHeaders);
       showAlert('Leave marked as rejected.', 'info');
       setPendingLeaves(prev => prev.filter(l => l.id !== leaveId));
       fetchDashboardData();
@@ -273,7 +273,7 @@ export default function HRDashboard() {
   const submitEditAttendance = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5000/api/attendance/update/${editRecord.id}`, { check_in_time: editRecord.check_in_time, check_out_time: editRecord.check_out_time, status: editRecord.status }, authHeaders);
+      await axios.put(`https://tamkeen-hrms.onrender.com/api/attendance/update/${editRecord.id}`, { check_in_time: editRecord.check_in_time, check_out_time: editRecord.check_out_time, status: editRecord.status }, authHeaders);
       showAlert('✓ Attendance record updated!', 'success');
       setEditRecord(null);
       fetchMonthlyReport(reportPage, reportMonth, searchQuery);
@@ -282,7 +282,7 @@ export default function HRDashboard() {
 
   const handleTriggerCron = async () => {
     try {
-      await axios.post('http://localhost:5000/api/cron/trigger-accrual', {}, authHeaders);
+      await axios.post('https://tamkeen-hrms.onrender.com/api/cron/trigger-accrual', {}, authHeaders);
       showAlert(`✓ Monthly Leave Accrual Executed!`, 'success');
       fetchEmployees();
     } catch (err) { showAlert('Failed to run accrual', 'error'); }
@@ -291,7 +291,7 @@ export default function HRDashboard() {
   const handleDownloadExcel = async () => {
     try {
       showAlert("Generating multi-sheet Excel report...", "info");
-      const response = await fetch("http://localhost:5000/api/reports/export-excel", { method: "GET", headers: { "Authorization": `Bearer ${token}` } });
+      const response = await fetch("https://tamkeen-hrms.onrender.com/api/reports/export-excel", { method: "GET", headers: { "Authorization": `Bearer ${token}` } });
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -307,7 +307,7 @@ export default function HRDashboard() {
   const handleDownloadPDF = async () => {
     try {
       showAlert("Generating PDF report...", "info");
-      const response = await fetch(`http://localhost:5000/api/reports/export-pdf?month=${reportMonth}`, { method: "GET", headers: { "Authorization": `Bearer ${token}` } });
+      const response = await fetch(`https://tamkeen-hrms.onrender.com/api/reports/export-pdf?month=${reportMonth}`, { method: "GET", headers: { "Authorization": `Bearer ${token}` } });
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -588,7 +588,7 @@ export default function HRDashboard() {
                       <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
                         <div className="flex items-center justify-between text-slate-700"><span>Requested Duration:</span><span className="font-bold text-slate-900 bg-white border border-slate-200 px-2.5 py-0.5 rounded-md">{leave.start_date} → {leave.end_date} ({leave.days} day)</span></div>
                         <div className="text-slate-700 pt-1 border-t border-slate-200"><span className="text-slate-400 block text-[10px] uppercase font-bold mb-0.5">Reason / Justification</span><p className="text-slate-800 italic bg-white p-2 rounded-lg border border-slate-200">"{leave.reason}"</p></div>
-                        {leave.proof_document && (<div className="pt-1"><a href={`http://localhost:5000${leave.proof_document}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-700 font-semibold bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-200"><FileText className="w-3.5 h-3.5" /> View Proof</a></div>)}
+                        {leave.proof_document && (<div className="pt-1"><a href={`https://tamkeen-hrms.onrender.com${leave.proof_document}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-700 font-semibold bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-200"><FileText className="w-3.5 h-3.5" /> View Proof</a></div>)}
                       </div>
 
                       <div className="flex gap-3 pt-1">
@@ -687,7 +687,7 @@ export default function HRDashboard() {
                       </div>
                     </div>
                     {emp.document_url && (
-                      <div><a href={`http://localhost:5000${emp.document_url}`} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-600 hover:text-indigo-700 underline flex items-center gap-1 font-semibold"><FileText className="w-3 h-3"/> View Attached ID</a></div>
+                      <div><a href={`https://tamkeen-hrms.onrender.com${emp.document_url}`} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-600 hover:text-indigo-700 underline flex items-center gap-1 font-semibold"><FileText className="w-3 h-3"/> View Attached ID</a></div>
                     )}
                     
                     <div className="grid grid-cols-3 gap-2 border-t border-slate-100 pt-3 text-center">

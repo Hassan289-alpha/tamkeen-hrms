@@ -2,7 +2,7 @@
 
 ## 📊 **Status: ✅ FULLY DEPLOYED & RUNNING**
 
-- **Backend:** http://localhost:5000 ✓ Running
+- **Backend:** https://tamkeen-hrms.onrender.com ✓ Running
 - **Frontend:** http://localhost:3001 ✓ Running
 - **Database:** SQLite (database.sqlite) ✓ Active
 - **Default HR Account:** hr@tamkeenits.com / admin123 ✓

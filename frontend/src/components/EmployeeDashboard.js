@@ -84,13 +84,13 @@ export default function EmployeeDashboard() {
   const fetchAllData = async () => {
     try {
       const [profileRes, networkRes, todayRes, historyRes, leavesRes, payslipsRes, holidaysRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/auth/me', authHeaders),
-        axios.get('http://localhost:5000/api/attendance/network-status', authHeaders),
-        axios.get('http://localhost:5000/api/attendance/today', authHeaders),
-        axios.get('http://localhost:5000/api/attendance/my-history', authHeaders),
-        axios.get('http://localhost:5000/api/leaves/my-leaves', authHeaders),
-        axios.get('http://localhost:5000/api/payroll/my-payslips', authHeaders),
-        axios.get('http://localhost:5000/api/holidays', authHeaders) // NEW: Fetch holidays
+        axios.get('https://tamkeen-hrms.onrender.com/api/auth/me', authHeaders),
+        axios.get('https://tamkeen-hrms.onrender.com/api/attendance/network-status', authHeaders),
+        axios.get('https://tamkeen-hrms.onrender.com/api/attendance/today', authHeaders),
+        axios.get('https://tamkeen-hrms.onrender.com/api/attendance/my-history', authHeaders),
+        axios.get('https://tamkeen-hrms.onrender.com/api/leaves/my-leaves', authHeaders),
+        axios.get('https://tamkeen-hrms.onrender.com/api/payroll/my-payslips', authHeaders),
+        axios.get('https://tamkeen-hrms.onrender.com/api/holidays', authHeaders) // NEW: Fetch holidays
       ]);
 
       if (profileRes.data?.user) {
@@ -116,7 +116,7 @@ export default function EmployeeDashboard() {
   const handleCheckIn = async () => {
     setCheckingIn(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/attendance/check-in', {}, authHeaders);
+      const res = await axios.post('https://tamkeen-hrms.onrender.com/api/attendance/check-in', {}, authHeaders);
       showAlert(res.data.message || 'Checked in successfully!', 'success');
       fetchAllData();
     } catch (err) {
@@ -130,7 +130,7 @@ export default function EmployeeDashboard() {
   const handleCheckOut = async () => {
     setCheckingOut(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/attendance/check-out', {}, authHeaders);
+      const res = await axios.post('https://tamkeen-hrms.onrender.com/api/attendance/check-out', {}, authHeaders);
       showAlert(res.data.message || 'Checked out successfully!', 'success');
       fetchAllData();
     } catch (err) {
@@ -154,7 +154,7 @@ export default function EmployeeDashboard() {
       if (leaveProof) formData.append('proof', leaveProof);
 
       const config = { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } };
-      const res = await axios.post('http://localhost:5000/api/leaves/apply', formData, config);
+      const res = await axios.post('https://tamkeen-hrms.onrender.com/api/leaves/apply', formData, config);
 
       showAlert(res.data.message || 'Leave application submitted for HR review!', 'success');
       setShowLeaveModal(false);
@@ -643,7 +643,7 @@ export default function EmployeeDashboard() {
                       
                       {l.proof_document && (
                         <div className="pt-1.5 border-t border-slate-100">
-                          <a href={`http://localhost:5000${l.proof_document}`} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-600 hover:text-indigo-700 underline flex items-center gap-1 font-bold">
+                          <a href={`https://tamkeen-hrms.onrender.com${l.proof_document}`} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-600 hover:text-indigo-700 underline flex items-center gap-1 font-bold">
                             <FileText className="w-3 h-3"/> View Attached Proof
                           </a>
                         </div>

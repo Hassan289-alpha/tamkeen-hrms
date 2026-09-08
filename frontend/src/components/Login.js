@@ -33,7 +33,7 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      const response = await axios.post('https://tamkeen-hrms.onrender.com/api/auth/login', { email, password });
 
       const { token, user } = response.data;
       localStorage.setItem('token', token);

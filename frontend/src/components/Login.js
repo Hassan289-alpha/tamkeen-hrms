@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
-  ShieldCheck,
-  Clock,
   CalendarDays,
+  Clock,
   FileSpreadsheet,
   Lock,
   Mail,
@@ -15,18 +14,11 @@ import {
 } from 'lucide-react';
 
 export default function Login() {
-  const [email, setEmail] = useState('hr@tamkeenits.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const handleQuickFill = (demoEmail, demoPass) => {
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    setError('');
-  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -152,10 +144,17 @@ export default function Login() {
         <div className="w-full max-w-md">
           {/* Card Wrapper */}
           <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-xl shadow-slate-200/50">
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Sign in to Portal</h3>
+            <div className="mb-8 text-center">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center p-2 mb-4 shadow-inner">
+                <img 
+                  src="/tamkeen-logo.png" 
+                  alt="Logo" 
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome Back</h3>
               <p className="text-sm text-slate-500 mt-1">
-                Enter your credentials or choose a quick demo role below
+                Please enter your corporate credentials
               </p>
             </div>
 
@@ -167,7 +166,7 @@ export default function Login() {
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-5">
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-2">
                   Corporate Email
@@ -186,14 +185,9 @@ export default function Login() {
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-                    Password
-                  </label>
-                  <span className="text-xs text-indigo-600 hover:text-indigo-700 hover:underline cursor-pointer font-bold">
-                    Forgot password?
-                  </span>
-                </div>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-2">
+                  Password
+                </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" />
                   <input
@@ -210,7 +204,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-2 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md shadow-indigo-600/20 transition-all duration-200 flex items-center justify-center gap-2 group disabled:opacity-60 cursor-pointer"
+                className="w-full mt-4 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-md shadow-indigo-600/20 transition-all duration-200 flex items-center justify-center gap-2 group disabled:opacity-60 cursor-pointer"
               >
                 {loading ? (
                   <>
@@ -219,56 +213,12 @@ export default function Login() {
                   </>
                 ) : (
                   <>
-                    <span>Authenticate & Access</span>
+                    <span>Secure Login</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                   </>
                 )}
               </button>
             </form>
-
-            {/* Quick Demo Switcher */}
-            <div className="mt-7 pt-6 border-t border-slate-100">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">
-                Quick One-Click Demo Credentials:
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('ceo@tamkeenits.com', 'ceo123')}
-                  className="p-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-amber-400 text-left transition-all group cursor-pointer shadow-sm"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-600">👑 CEO</span>
-                    <span className="text-[10px] text-slate-400 group-hover:text-slate-600">Fill</span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 font-mono mt-0.5 truncate">ceo@tamkeenits.com</p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('hr@tamkeenits.com', 'admin123')}
-                  className="p-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-indigo-400 text-left transition-all group cursor-pointer shadow-sm"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-indigo-600">👨‍💼 HR</span>
-                    <span className="text-[10px] text-slate-400 group-hover:text-slate-600">Fill</span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 font-mono mt-0.5 truncate">hr@tamkeenits.com</p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('ahmed@tamkeenits.com', 'employee123')}
-                  className="p-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-emerald-400 text-left transition-all group cursor-pointer shadow-sm"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-emerald-600">👤 Staff</span>
-                    <span className="text-[10px] text-slate-400 group-hover:text-slate-600">Fill</span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 font-mono mt-0.5 truncate">ahmed@tamkeenits</p>
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>

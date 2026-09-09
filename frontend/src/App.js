@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import RoleSelection from './components/RoleSelection';
 import EmployeeDashboard from './components/EmployeeDashboard';
 import HRDashboard from './components/HRDashboard';
 import CEODashboard from './components/CEODashboard';
@@ -72,7 +71,9 @@ function App() {
     <Router>
       <div className="min-h-screen bg-[#090d16] text-slate-100 font-sans selection:bg-indigo-500 selection:text-white">
         <Routes>
-          <Route path="/" element={<RoleSelection />} />
+          {/* Automatically redirect root to the Login page */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          
           <Route
             path="/login"
             element={
@@ -105,7 +106,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* Catch all unknown routes and redirect to login */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>
     </Router>
@@ -113,4 +115,3 @@ function App() {
 }
 
 export default App;
-

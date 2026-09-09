@@ -4,7 +4,7 @@ import axios from 'axios';
 import {
   Users, CalendarCheck, Clock, FileSpreadsheet, FileText, CheckCircle, XCircle, LogOut,
   Sparkles, TrendingUp, Search, RefreshCw, Briefcase,
-  X, Megaphone, Flag, UserCheck, Edit3, Trash2, UserPlus, Play, PieChart, Download, Check,
+  X, Megaphone, Flag, UserCheck, Edit3, Trash2, UserPlus, PieChart, Download, Check,
 } from 'lucide-react';
 
 export default function HRDashboard() {

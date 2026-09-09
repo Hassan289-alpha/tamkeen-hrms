@@ -11,12 +11,16 @@ const User = sequelize.define('User', {
   department: { type: DataTypes.STRING, defaultValue: 'Engineering' },
   position: { type: DataTypes.STRING, defaultValue: 'Staff' },
   isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
+  
+  // NEW: Compulsory Date of Birth
+  date_of_birth: { type: DataTypes.DATEONLY, allowNull: false },
+
   casual_leave_balance: { type: DataTypes.FLOAT, defaultValue: 10 },
   sick_leave_balance: { type: DataTypes.FLOAT, defaultValue: 10 },
   annual_leave_balance: { type: DataTypes.FLOAT, defaultValue: 15 },
   document_url: { type: DataTypes.STRING, allowNull: true },
   
-  // NEW: Payroll Data (Base Salary in PKR)
+  // Payroll Data (Base Salary in PKR)
   base_salary: { type: DataTypes.INTEGER, defaultValue: 75000 }
 }, {
   hooks: {

@@ -25,7 +25,8 @@ export default function HRDashboard() {
   const [rejectLeaveModal, setRejectLeaveModal] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
 
-  const [newEmp, setNewEmp] = useState({ name: '', email: '', password: 'employee123', department: 'Engineering', base_salary: 75000, document: null });
+  // Added date_of_birth to state
+  const [newEmp, setNewEmp] = useState({ name: '', email: '', password: 'employee123', department: 'RPA', base_salary: 75000, date_of_birth: '', document: null });
   const [addingUser, setAddingUser] = useState(false);
 
   const [newHoliday, setNewHoliday] = useState({ title: '', start_date: '', end_date: '', description: '' });
@@ -112,11 +113,12 @@ export default function HRDashboard() {
       formData.append('password', newEmp.password);
       formData.append('department', newEmp.department);
       formData.append('base_salary', newEmp.base_salary);
+      formData.append('date_of_birth', newEmp.date_of_birth); // Appended DOB
       if (newEmp.document) formData.append('document', newEmp.document);
 
       await axios.post('https://tamkeen-hrms.onrender.com/api/auth/register', formData, { headers: { ...authHeaders.headers, 'Content-Type': 'multipart/form-data' } });
       showAlert('✓ Employee account saved successfully!', 'success');
-      setNewEmp({ name: '', email: '', password: 'employee123', department: 'Engineering', base_salary: 75000, document: null });
+      setNewEmp({ name: '', email: '', password: 'employee123', department: 'Engineering', base_salary: 75000, date_of_birth: '', document: null });
       if(document.getElementById('hr-file-upload')) document.getElementById('hr-file-upload').value = '';
       fetchEmployees();
       fetchDashboardData();
@@ -698,12 +700,19 @@ export default function HRDashboard() {
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-6">
               <h3 className="text-base font-bold text-slate-900">Staff Directory, Base Salaries (PKR) & Document Vault</h3>
 
-              <form onSubmit={handleAddEmployee} className="p-5 rounded-2xl bg-slate-50 border border-slate-200 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-3 items-end">
+              <form onSubmit={handleAddEmployee} className="p-5 rounded-2xl bg-slate-50 border border-slate-200 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-8 gap-3 items-end">
                 <div className="lg:col-span-1"><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Full Name</label><input type="text" required value={newEmp.name} onChange={e => setNewEmp({...newEmp, name: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
                 <div className="lg:col-span-1"><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Email</label><input type="email" required value={newEmp.email} onChange={e => setNewEmp({...newEmp, email: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
                 <div className="lg:col-span-1"><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Password</label><input type="text" required value={newEmp.password} onChange={e => setNewEmp({...newEmp, password: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
                 <div className="lg:col-span-1"><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Department</label><input type="text" required value={newEmp.department} onChange={e => setNewEmp({...newEmp, department: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
                 <div className="lg:col-span-1"><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Base Salary (Rs.)</label><input type="number" required value={newEmp.base_salary} onChange={e => setNewEmp({...newEmp, base_salary: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
+                
+                {/* Compulsory Date of Birth input added */}
+                <div className="lg:col-span-1">
+                  <label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Date of Birth</label>
+                  <input type="date" required value={newEmp.date_of_birth} onChange={e => setNewEmp({...newEmp, date_of_birth: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" />
+                </div>
+
                 <div className="lg:col-span-1"><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Upload ID/Doc</label><input id="hr-file-upload" type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={e => setNewEmp({...newEmp, document: e.target.files[0]})} className="w-full text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-indigo-50 file:text-indigo-700 cursor-pointer" /></div>
                 <button type="submit" disabled={addingUser} className="w-full py-2 h-[34px] rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shrink-0 cursor-pointer disabled:opacity-50"><UserPlus className="w-4 h-4 inline mr-1" />{addingUser ? '...' : 'Add Staff'}</button>
               </form>
@@ -757,7 +766,7 @@ export default function HRDashboard() {
                   <button onClick={() => fetchPayroll(payrollMonth)} className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer border border-slate-200">
                     Recalculate Month
                   </button>
-                  <button onClick={handleApproveAllDrafts} className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer shadow-sm">
+                  <button onClick={() => handleApproveAllDrafts()} className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer shadow-sm">
                     Approve All Drafts
                   </button>
                 </div>

@@ -6,13 +6,13 @@ const User = require('../models/User');
 const { authenticateToken, requireRole } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
-// HR & CEO ONLY: Register a new employee (With optional Document upload)
+// HR & CEO ONLY: Register a new employee (With optional Document upload & Compulsory DOB)
 router.post('/register', authenticateToken, requireRole('HR', 'CEO'), upload.single('document'), async (req, res) => {
   try {
-    const { name, email, password, role, department, position, base_salary } = req.body;
+    const { name, email, password, role, department, position, base_salary, date_of_birth } = req.body;
     
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Name, email, and password are required.' });
+    if (!name || !email || !password || !date_of_birth) {
+      return res.status(400).json({ error: 'Name, email, password, and date of birth are required.' });
     }
 
     const existingUser = await User.findOne({ where: { email } });
@@ -31,6 +31,7 @@ router.post('/register', authenticateToken, requireRole('HR', 'CEO'), upload.sin
       department: department || 'Engineering',
       position: position || 'Staff Member',
       base_salary: base_salary ? Number(base_salary) : 75000,
+      date_of_birth, // Saved to database
       sick_leave_balance: 10,
       casual_leave_balance: 10,
       annual_leave_balance: 15,
@@ -104,7 +105,7 @@ router.get('/users', authenticateToken, requireRole('HR', 'CEO'), async (req, re
 // HR & CEO ONLY: Update an employee & Handle Password Reset
 router.put('/users/:id', authenticateToken, requireRole('HR', 'CEO'), async (req, res) => {
   try {
-    const { name, email, department, base_salary, password } = req.body;
+    const { name, email, department, base_salary, date_of_birth, password } = req.body;
     const user = await User.findByPk(req.params.id);
     
     if (!user) {
@@ -115,6 +116,7 @@ router.put('/users/:id', authenticateToken, requireRole('HR', 'CEO'), async (req
     user.email = email || user.email;
     user.department = department || user.department;
     user.base_salary = base_salary !== undefined ? Number(base_salary) : user.base_salary;
+    user.date_of_birth = date_of_birth || user.date_of_birth;
 
     // Check if a new password was provided in the update form
     if (password && password.trim() !== '') {

@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const cron = require("node-cron");
+const { Op } = require("sequelize");
 const sequelize = require("./models/db");
 const User = require("./models/User");
 const Attendance = require("./models/Attendance");
@@ -52,6 +53,56 @@ app.post("/api/cron/trigger-accrual", async (req, res) => {
 });
 
 // ==========================================
+// AUTOMATED BIRTHDAY NOTIFICATION CRON JOB
+// ==========================================
+cron.schedule("0 8 * * *", async () => {
+  console.log("🎂 [CRON JOB] Checking for employee birthdays...");
+  try {
+    const today = new Date();
+    const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
+    const currentDay = String(today.getDate()).padStart(2, '0');
+    const monthDayString = `${currentMonth}-${currentDay}`;
+
+    // Find all users whose date_of_birth matches today's month and day
+    const birthdayEmployees = await User.findAll({
+      where: {
+        [Op.and]: [
+          sequelize.where(
+            sequelize.fn("to_char", sequelize.col("date_of_birth"), "MM-DD"),
+            monthDayString
+          )
+        ]
+      }
+    });
+
+    for (const emp of birthdayEmployees) {
+      const announcementTitle = "Birthday Reminder 🎂";
+      
+      // Check if a birthday announcement already exists for today to avoid duplicates
+      const existingAnnouncement = await Holiday.findOne({
+        where: {
+          title: announcementTitle,
+          start_date: today.toISOString().slice(0, 10),
+          description: { [Op.like]: `%${emp.name}%` }
+        }
+      });
+
+      if (!existingAnnouncement) {
+        await Holiday.create({
+          title: announcementTitle,
+          start_date: today.toISOString().slice(0, 10),
+          end_date: today.toISOString().slice(0, 10),
+          description: `Today is ${emp.name}'s birthday 🎉\nA friendly reminder of an important date for our team.\nEveryone, let's congratulate ${emp.name} on their birthday.\n\nSent via Tamkeen IT Services HRMS`
+        });
+        console.log(`✓ [CRON JOB] Created birthday reminder for ${emp.name}`);
+      }
+    }
+  } catch (error) {
+    console.error("❌ [CRON JOB] Birthday cron error:", error);
+  }
+});
+
+// ==========================================
 // DEPLOYMENT CONFIGURATION (Serve React)
 // ==========================================
 app.use(express.static(path.join(__dirname, '../frontend/build')));
@@ -77,20 +128,21 @@ const seedInitialData = async () => {
     if (!exists) {
       await User.create({
         name: m.name, email: m.email, password: m.pass, role: m.role,
-        department: "Management", position: m.role, base_salary: 120000
+        department: "Management", position: m.role, base_salary: 120000,
+        date_of_birth: "1995-01-01"
       });
     }
   }
 
-  // 2. Seed 7 Employees
+  // 2. Seed 7 Employees with Sample DOBs
   const employeeData = [
-    { name: "Ahmed Raza", email: "ahmed.raza@tamkeenits.com", dept: "RPA", salary: 85000 },
-    { name: "Usman Bhai", email: "usman.bhai@tamkeenits.com", dept: "Power Apps", salary: 90000 },
-    { name: "Waqas Bhai", email: "waqas.bhai@tamkeenits.com", dept: "RPA", salary: 90000 },
-    { name: "Hassan", email: "hassan@tamkeenits.com", dept: "RPA INTERN", salary: 35000 },
-    { name: "Jazib", email: "jazib@tamkeenits.com", dept: "POWER APPS INTERN", salary: 35000 },
-    { name: "Muaaz", email: "muaaz@tamkeenits.com", dept: "RPA INTERN", salary: 35000 },
-    { name: "Ali", email: "ali@tamkeenits.com", dept: "RPA", salary: 80000 }
+    { name: "Ahmed Raza", email: "ahmed.raza@tamkeenits.com", dept: "RPA", salary: 85000, dob: "2000-05-15" },
+    { name: "Usman Bhai", email: "usman.bhai@tamkeenits.com", dept: "Power Apps", salary: 90000, dob: "1998-03-22" },
+    { name: "Waqas Bhai", email: "waqas.bhai@tamkeenits.com", dept: "RPA", salary: 90000, dob: "1996-07-10" },
+    { name: "Hassan", email: "hassan@tamkeenits.com", dept: "RPA INTERN", salary: 35000, dob: "2002-11-05" },
+    { name: "Jazib", email: "jazib@tamkeenits.com", dept: "POWER APPS INTERN", salary: 35000, dob: "2003-02-18" },
+    { name: "Muaaz", email: "muaaz@tamkeenits.com", dept: "RPA INTERN", salary: 35000, dob: "2001-09-30" },
+    { name: "Ali", email: "ali@tamkeenits.com", dept: "RPA", salary: 80000, dob: "1999-12-12" }
   ];
 
   const createdEmployees = [];
@@ -101,7 +153,8 @@ const seedInitialData = async () => {
         name: emp.name, email: emp.email, password: "employee123",
         role: "Employee", department: emp.dept, position: "Staff",
         casual_leave_balance: 10, sick_leave_balance: 10, annual_leave_balance: 15,
-        base_salary: emp.salary
+        base_salary: emp.salary,
+        date_of_birth: emp.dob
       });
     }
     createdEmployees.push(user);

@@ -144,8 +144,8 @@ router.get('/payslip/:id/pdf', authenticateToken, async (req, res) => {
     doc.fillColor('#102b4e').moveTo(180, 0).lineTo(190, 0).lineTo(70, 190).lineTo(60, 190).fill();
 
     // Company Name & Subtitle
-    doc.fillColor('#102b4e').fontSize(22).font('Helvetica-Bold').text('TAMKEEN IT SERVICES', 130, 45);
-    doc.fillColor('#52525b').fontSize(8).font('Helvetica').text('Artificial Intelligence | Robotic Process Automation | Cybersecurity', 132, 72);
+    doc.fillColor('#102b4e').fontSize(22).font('Helvetica-Bold').text('TAMKEEN IT SERVICES', 160, 45);
+    doc.fillColor('#52525b').fontSize(8).font('Helvetica').text('Artificial Intelligence | Robotic Process Automation | Cybersecurity', 162, 72);
     
     // Underline with Circle Dot
     doc.moveTo(130, 90).lineTo(380, 90).strokeColor('#102b4e').lineWidth(1.5).stroke();

@@ -19,7 +19,8 @@ import {
   RefreshCw,
   Plus,
   FileText,
-  Megaphone
+  Megaphone,
+  Lock // Added Lock icon for Password Change
 } from 'lucide-react';
 
 export default function EmployeeDashboard() {
@@ -52,6 +53,12 @@ export default function EmployeeDashboard() {
   const [leaveReason, setLeaveReason] = useState('');
   const [leaveProof, setLeaveProof] = useState(null);
   const [submittingLeave, setSubmittingLeave] = useState(false);
+
+  // Password Change Modal State
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   // Alert State
   const [alert, setAlert] = useState(null);
@@ -144,7 +151,6 @@ export default function EmployeeDashboard() {
   const handleApplyLeave = async (e) => {
     e.preventDefault();
 
-    // --- FRONTEND VALIDATION LOGIC ---
     if (leaveType === 'Casual' && calculatedDays > userProfile.casual_leave_balance) {
       showAlert(`Cannot request ${calculatedDays} days. You only have ${userProfile.casual_leave_balance} casual leaves remaining.`, 'error');
       return;
@@ -157,7 +163,6 @@ export default function EmployeeDashboard() {
       showAlert(`Cannot request ${calculatedDays} days. You only have ${userProfile.annual_leave_balance} annual leaves remaining.`, 'error');
       return;
     }
-    // ---------------------------------
 
     setSubmittingLeave(true);
     try {
@@ -183,6 +188,27 @@ export default function EmployeeDashboard() {
       showAlert(err.response?.data?.error || 'Failed to submit leave application', 'error');
     } finally {
       setSubmittingLeave(false);
+    }
+  };
+
+  // Change Password Handler
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setIsChangingPassword(true);
+    try {
+      const res = await axios.put('https://tamkeen-hrms.onrender.com/api/auth/change-password', {
+        currentPassword,
+        newPassword
+      }, authHeaders);
+      
+      showAlert(res.data.message || 'Password updated successfully!', 'success');
+      setShowPasswordModal(false);
+      setCurrentPassword('');
+      setNewPassword('');
+    } catch (err) {
+      showAlert(err.response?.data?.error || 'Failed to update password', 'error');
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -312,6 +338,13 @@ export default function EmployeeDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowPasswordModal(true)}
+              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
+              title="Change Password"
+            >
+              <Lock className="w-4 h-4" />
+            </button>
             <button
               onClick={() => setShowLeaveModal(true)}
               className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
@@ -782,6 +815,81 @@ export default function EmployeeDashboard() {
           )}
         </div>
       </main>
+
+      {/* PASSWORD CHANGE MODAL */}
+      {showPasswordModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn"
+          onClick={() => setShowPasswordModal(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden space-y-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Lock className="w-5 h-5 text-indigo-600" /> Change Password
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">Securely update your account access</p>
+              </div>
+              <button
+                onClick={() => setShowPasswordModal(false)}
+                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600"
+                  placeholder="Enter current password"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-600 focus:border-indigo-600"
+                  placeholder="Enter new password"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordModal(false)}
+                  className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isChangingPassword}
+                  className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isChangingPassword ? 'Updating...' : 'Save Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* LEAVE REQUEST SLIDE-OUT / MODAL */}
       {showLeaveModal && (

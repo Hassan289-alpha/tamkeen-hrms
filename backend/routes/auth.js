@@ -131,5 +131,32 @@ router.put('/users/:id', authenticateToken, requireRole('HR', 'CEO'), async (req
     res.status(500).json({ error: 'Failed to update employee' });
   }
 });
+// PROTECTED: Employee/HR Self-Service Password Change
+router.put('/change-password', authenticateToken, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findByPk(req.user.id);
+    
+    if (!user) return res.status(404).json({ error: 'User not found' });
 
+    // Verify current password
+    let isMatch = false;
+    if (user.password.startsWith('$2a$') || user.password.startsWith('$2b$')) {
+        isMatch = await bcrypt.compare(currentPassword, user.password);
+    } else {
+        isMatch = (currentPassword === user.password); 
+    }
+
+    if (!isMatch) return res.status(400).json({ error: 'Incorrect current password.' });
+
+    // Hash and save new password
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.json({ message: 'Password updated successfully!' });
+  } catch (error) {
+    console.error('Password change error:', error);
+    res.status(500).json({ error: 'Failed to update password' });
+  }
+});
 module.exports = router;

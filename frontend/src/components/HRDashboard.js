@@ -21,12 +21,11 @@ export default function HRDashboard() {
   const [approvingId, setApprovingId] = useState(null);
   const [rejectingId, setRejectingId] = useState(null);
 
-  // Rejection Modal State
   const [rejectLeaveModal, setRejectLeaveModal] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
 
-  // Added date_of_birth to state
-  const [newEmp, setNewEmp] = useState({ name: '', email: '', password: 'employee123', department: 'RPA', base_salary: 75000, date_of_birth: '', document: null });
+  // ADDED: "position" to the new employee state
+  const [newEmp, setNewEmp] = useState({ name: '', email: '', password: 'employee123', department: 'Engineering', position: 'Staff', base_salary: 75000, date_of_birth: '', document: null });
   const [addingUser, setAddingUser] = useState(false);
 
   const [newHoliday, setNewHoliday] = useState({ title: '', start_date: '', end_date: '', description: '' });
@@ -112,13 +111,15 @@ export default function HRDashboard() {
       formData.append('email', newEmp.email);
       formData.append('password', newEmp.password);
       formData.append('department', newEmp.department);
+      formData.append('position', newEmp.position); // Added position
       formData.append('base_salary', newEmp.base_salary);
-      formData.append('date_of_birth', newEmp.date_of_birth); // Appended DOB
+      formData.append('date_of_birth', newEmp.date_of_birth);
       if (newEmp.document) formData.append('document', newEmp.document);
 
       await axios.post('https://tamkeen-hrms.onrender.com/api/auth/register', formData, { headers: { ...authHeaders.headers, 'Content-Type': 'multipart/form-data' } });
       showAlert('✓ Employee account saved successfully!', 'success');
-      setNewEmp({ name: '', email: '', password: 'employee123', department: 'Engineering', base_salary: 75000, date_of_birth: '', document: null });
+      // Reset form
+      setNewEmp({ name: '', email: '', password: 'employee123', department: 'Engineering', position: 'Staff', base_salary: 75000, date_of_birth: '', document: null });
       if(document.getElementById('hr-file-upload')) document.getElementById('hr-file-upload').value = '';
       fetchEmployees();
       fetchDashboardData();
@@ -262,28 +263,20 @@ export default function HRDashboard() {
     } catch (err) { showAlert('Failed to approve leave', 'error'); } finally { setApprovingId(null); }
   };
 
-  // Submit Rejection with Reason
   const submitRejectLeave = async (e) => {
     e.preventDefault();
     if (!rejectReason.trim()) return showAlert('Rejection reason is required.', 'error');
-
     setRejectingId(rejectLeaveModal.id);
     try {
       await axios.put(`https://tamkeen-hrms.onrender.com/api/leaves/${rejectLeaveModal.id}/status`, { 
-        status: 'Rejected',
-        rejection_reason: rejectReason 
+        status: 'Rejected', rejection_reason: rejectReason 
       }, authHeaders);
-
       showAlert('Leave application rejected successfully.', 'info');
       setPendingLeaves(prev => prev.filter(l => l.id !== rejectLeaveModal.id));
       fetchDashboardData();
       setRejectLeaveModal(null);
       setRejectReason('');
-    } catch (err) { 
-      showAlert('Failed to reject leave', 'error'); 
-    } finally { 
-      setRejectingId(null); 
-    }
+    } catch (err) { showAlert('Failed to reject leave', 'error'); } finally { setRejectingId(null); }
   };
 
   const submitEditAttendance = async (e) => {
@@ -343,14 +336,7 @@ export default function HRDashboard() {
             <form onSubmit={submitRejectLeave} className="space-y-4">
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Rejection Reason</label>
-                <textarea 
-                  rows="3" 
-                  required 
-                  value={rejectReason} 
-                  onChange={(e) => setRejectReason(e.target.value)} 
-                  placeholder="E.g., Insufficient leave balance, critical project deadline..."
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none focus:border-rose-500 resize-none" 
-                />
+                <textarea rows="3" required value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="E.g., Insufficient leave balance..." className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none focus:border-rose-500 resize-none" />
               </div>
               <button type="submit" disabled={rejectingId === rejectLeaveModal.id} className="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm transition-colors mt-2 cursor-pointer shadow-sm disabled:opacity-50">
                 {rejectingId === rejectLeaveModal.id ? 'Rejecting...' : 'Confirm Rejection'}
@@ -398,7 +384,7 @@ export default function HRDashboard() {
         </div>
       )}
 
-      {/* EDIT EMPLOYEE MODAL */}
+      {/* EDIT EMPLOYEE MODAL (Includes Position) */}
       {editEmployeeModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 shadow-2xl relative text-slate-900">
@@ -408,13 +394,18 @@ export default function HRDashboard() {
               <div><label className="block text-xs font-medium text-slate-600 mb-1">Full Name</label><input type="text" value={editEmployeeModal.name} onChange={e => setEditEmployeeModal({...editEmployeeModal, name: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-600" required /></div>
               <div><label className="block text-xs font-medium text-slate-600 mb-1">Email</label><input type="email" value={editEmployeeModal.email} onChange={e => setEditEmployeeModal({...editEmployeeModal, email: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-600" required /></div>
               
+              <div><label className="block text-xs font-medium text-slate-600 mb-1">Department</label><input type="text" value={editEmployeeModal.department} onChange={e => setEditEmployeeModal({...editEmployeeModal, department: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-600" required /></div>
+              
+              {/* ADDED: Edit Position */}
+              <div><label className="block text-xs font-medium text-slate-600 mb-1">Position / Job Title</label><input type="text" value={editEmployeeModal.position || ''} onChange={e => setEditEmployeeModal({...editEmployeeModal, position: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-600" required /></div>
+
+              <div><label className="block text-xs font-medium text-slate-600 mb-1">Base Salary (Rs.)</label><input type="number" value={editEmployeeModal.base_salary} onChange={e => setEditEmployeeModal({...editEmployeeModal, base_salary: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-600" required /></div>
+              
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Reset Password (Optional)</label>
                 <input type="text" placeholder="Enter new password to reset..." value={editEmployeeModal.password || ''} onChange={e => setEditEmployeeModal({...editEmployeeModal, password: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-600" />
               </div>
 
-              <div><label className="block text-xs font-medium text-slate-600 mb-1">Department</label><input type="text" value={editEmployeeModal.department} onChange={e => setEditEmployeeModal({...editEmployeeModal, department: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-600" required /></div>
-              <div><label className="block text-xs font-medium text-slate-600 mb-1">Base Salary (Rs.)</label><input type="number" value={editEmployeeModal.base_salary} onChange={e => setEditEmployeeModal({...editEmployeeModal, base_salary: e.target.value})} className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-600" required /></div>
               <button type="submit" className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-colors mt-2 cursor-pointer shadow-sm">Update Employee</button>
             </form>
           </div>
@@ -700,21 +691,21 @@ export default function HRDashboard() {
             <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-6">
               <h3 className="text-base font-bold text-slate-900">Staff Directory, Base Salaries (PKR) & Document Vault</h3>
 
-              <form onSubmit={handleAddEmployee} className="p-5 rounded-2xl bg-slate-50 border border-slate-200 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-8 gap-3 items-end">
-                <div className="lg:col-span-1"><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Full Name</label><input type="text" required value={newEmp.name} onChange={e => setNewEmp({...newEmp, name: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
-                <div className="lg:col-span-1"><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Email</label><input type="email" required value={newEmp.email} onChange={e => setNewEmp({...newEmp, email: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
-                <div className="lg:col-span-1"><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Password</label><input type="text" required value={newEmp.password} onChange={e => setNewEmp({...newEmp, password: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
-                <div className="lg:col-span-1"><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Department</label><input type="text" required value={newEmp.department} onChange={e => setNewEmp({...newEmp, department: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
-                <div className="lg:col-span-1"><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Base Salary (Rs.)</label><input type="number" required value={newEmp.base_salary} onChange={e => setNewEmp({...newEmp, base_salary: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
+              {/* UPDATED: Add form now has Position field and uses an adaptive grid layout */}
+              <form onSubmit={handleAddEmployee} className="p-5 rounded-2xl bg-slate-50 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 items-end">
+                <div><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Full Name</label><input type="text" required value={newEmp.name} onChange={e => setNewEmp({...newEmp, name: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
+                <div><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Email</label><input type="email" required value={newEmp.email} onChange={e => setNewEmp({...newEmp, email: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
+                <div><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Password</label><input type="text" required value={newEmp.password} onChange={e => setNewEmp({...newEmp, password: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
+                <div><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Department</label><input type="text" required value={newEmp.department} onChange={e => setNewEmp({...newEmp, department: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
                 
-                {/* Compulsory Date of Birth input added */}
-                <div className="lg:col-span-1">
-                  <label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Date of Birth</label>
-                  <input type="date" required value={newEmp.date_of_birth} onChange={e => setNewEmp({...newEmp, date_of_birth: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" />
-                </div>
+                {/* ADDED: Position Input */}
+                <div><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Position</label><input type="text" required value={newEmp.position} onChange={e => setNewEmp({...newEmp, position: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
 
-                <div className="lg:col-span-1"><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Upload ID/Doc</label><input id="hr-file-upload" type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={e => setNewEmp({...newEmp, document: e.target.files[0]})} className="w-full text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-indigo-50 file:text-indigo-700 cursor-pointer" /></div>
-                <button type="submit" disabled={addingUser} className="w-full py-2 h-[34px] rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shrink-0 cursor-pointer disabled:opacity-50"><UserPlus className="w-4 h-4 inline mr-1" />{addingUser ? '...' : 'Add Staff'}</button>
+                <div><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Base Salary (Rs.)</label><input type="number" required value={newEmp.base_salary} onChange={e => setNewEmp({...newEmp, base_salary: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
+                <div><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Date of Birth</label><input type="date" required value={newEmp.date_of_birth} onChange={e => setNewEmp({...newEmp, date_of_birth: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-indigo-600" /></div>
+                <div className="sm:col-span-2 md:col-span-2 lg:col-span-1"><label className="block text-[10px] uppercase text-slate-500 font-bold mb-1">Upload ID/Doc</label><input id="hr-file-upload" type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={e => setNewEmp({...newEmp, document: e.target.files[0]})} className="w-full text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-indigo-50 file:text-indigo-700 cursor-pointer" /></div>
+                
+                <button type="submit" disabled={addingUser} className="w-full py-2 h-[34px] rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shrink-0 cursor-pointer disabled:opacity-50 sm:col-span-2 md:col-span-1 lg:col-span-2 xl:col-span-1"><UserPlus className="w-4 h-4 inline mr-1" />{addingUser ? '...' : 'Add Staff'}</button>
               </form>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -726,13 +717,23 @@ export default function HRDashboard() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 flex items-center justify-center text-white font-bold">{emp.name.charAt(0)}</div>
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 flex items-center justify-center text-white font-bold shrink-0">{emp.name.charAt(0)}</div>
                       <div>
                         <h4 className="text-xs font-bold text-slate-900">{emp.name}</h4>
-                        <p className="text-[10px] text-slate-500">{emp.email}</p>
-                        <span className="text-[10px] font-bold text-indigo-600">Rs. {(emp.base_salary || 75000).toLocaleString()} /mo</span>
+                        <p className="text-[10px] text-slate-500 mb-1">{emp.email}</p>
+                        
+                        {/* ADDED: Visual Tags for Role, Department, and Position */}
+                        <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">{emp.role}</span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 border border-indigo-100 text-indigo-700">
+                            {emp.department} - {emp.position || 'Staff'}
+                          </span>
+                        </div>
+                        
+                        <span className="text-[10px] font-bold text-emerald-600">Rs. {(emp.base_salary || 75000).toLocaleString()} /mo</span>
                       </div>
                     </div>
+
                     {emp.document_url && (
                       <div><a href={`https://tamkeen-hrms.onrender.com${emp.document_url}`} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-600 hover:text-indigo-700 underline flex items-center gap-1 font-semibold"><FileText className="w-3 h-3"/> View Attached ID</a></div>
                     )}

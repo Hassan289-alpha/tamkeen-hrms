@@ -29,9 +29,9 @@ router.post('/register', authenticateToken, requireRole('HR', 'CEO'), upload.sin
       password: hashedPassword,
       role: role || 'Employee',
       department: department || 'Engineering',
-      position: position || 'Staff Member',
+      position: position || 'Staff Member', // Saves the Job Position
       base_salary: base_salary ? Number(base_salary) : 75000,
-      date_of_birth, // Saved to database
+      date_of_birth,
       sick_leave_balance: 10,
       casual_leave_balance: 10,
       annual_leave_balance: 15,
@@ -105,7 +105,8 @@ router.get('/users', authenticateToken, requireRole('HR', 'CEO'), async (req, re
 // HR & CEO ONLY: Update an employee & Handle Password Reset
 router.put('/users/:id', authenticateToken, requireRole('HR', 'CEO'), async (req, res) => {
   try {
-    const { name, email, department, base_salary, date_of_birth, password } = req.body;
+    // Extracted "position" here:
+    const { name, email, department, position, base_salary, date_of_birth, password } = req.body;
     const user = await User.findByPk(req.params.id);
     
     if (!user) {
@@ -115,6 +116,7 @@ router.put('/users/:id', authenticateToken, requireRole('HR', 'CEO'), async (req
     user.name = name || user.name;
     user.email = email || user.email;
     user.department = department || user.department;
+    user.position = position || user.position; // Updates the Job Position
     user.base_salary = base_salary !== undefined ? Number(base_salary) : user.base_salary;
     user.date_of_birth = date_of_birth || user.date_of_birth;
 
@@ -131,6 +133,7 @@ router.put('/users/:id', authenticateToken, requireRole('HR', 'CEO'), async (req
     res.status(500).json({ error: 'Failed to update employee' });
   }
 });
+
 // PROTECTED: Employee/HR Self-Service Password Change
 router.put('/change-password', authenticateToken, async (req, res) => {
   try {
@@ -159,4 +162,5 @@ router.put('/change-password', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to update password' });
   }
 });
+
 module.exports = router;

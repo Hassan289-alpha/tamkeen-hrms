@@ -103,6 +103,79 @@ cron.schedule("0 8 * * *", async () => {
 });
 
 // ==========================================
+// END-OF-DAY ABSENTEE CHECKER (Runs at 7:30 PM PKT)
+// ==========================================
+cron.schedule("30 19 * * *", async () => {
+  console.log("🕵️ [CRON JOB] Running 7:30 PM Absentee Check...");
+  try {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 = Sunday, 5 = Friday, 6 = Saturday
+    const todayStr = today.toISOString().slice(0, 10);
+
+    // Skip if it's an official weekend (Friday or Saturday)
+    if (dayOfWeek === 5 || dayOfWeek === 6) {
+      console.log("✓ Official weekend. Skipping absentee check.");
+      return;
+    }
+
+    // Skip if today is a public holiday
+    const isHoliday = await Holiday.findOne({
+      where: {
+        start_date: { [Op.lte]: todayStr },
+        end_date: { [Op.gte]: todayStr }
+      }
+    });
+
+    if (isHoliday) {
+      console.log("✓ Today is a public holiday. Skipping absentee check.");
+      return;
+    }
+
+    // Get all active employees
+    const employees = await User.findAll({ where: { role: 'Employee', isActive: true } });
+
+    for (const emp of employees) {
+      // Check if they checked in today
+      const attendance = await Attendance.findOne({
+        where: { userId: emp.id, date: todayStr }
+      });
+
+      if (!attendance) {
+        // Check if they have an APPROVED leave for today
+        const hasLeave = await Leave.findOne({
+          where: {
+            userId: emp.id,
+            status: 'Approved',
+            start_date: { [Op.lte]: todayStr },
+            end_date: { [Op.gte]: todayStr }
+          }
+        });
+
+        // If no attendance and no approved leave, mark as ABSENT
+        if (!hasLeave) {
+          await Attendance.create({
+            userId: emp.id,
+            date: todayStr,
+            check_in_time: '-',
+            check_out_time: '-',
+            total_hours: 0,
+            total_hours_formatted: '0h 0m',
+            client_ip: 'System Auto-Generated',
+            status: 'Absent'
+          });
+          console.log(`⚠️ Marked ${emp.name} as ABSENT for ${todayStr}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("❌ [CRON JOB] Absentee Check Error:", error);
+  }
+}, {
+  scheduled: true,
+  timezone: "Asia/Karachi"
+});
+
+// ==========================================
 // DEPLOYMENT CONFIGURATION (Serve React)
 // ==========================================
 app.use(express.static(path.join(__dirname, '../frontend/build')));
